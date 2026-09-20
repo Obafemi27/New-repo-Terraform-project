@@ -32,7 +32,7 @@ Set the required `ami_id` in each environment's `dev.tfvars` or `prod.tfvars` fi
 
 ## CI/CD
 
-[`.github/workflows/terraform.yml`](.github/workflows/terraform.yml) validates pull requests and pushes without AWS credentials. It never applies infrastructure automatically.
+[`.github/workflows/terraform.yml`](.github/workflows/terraform.yml) validates and then creates a Terraform plan for pull requests and pushes. It never applies infrastructure automatically.
 
 Target branch determines the validation environment:
 

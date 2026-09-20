@@ -52,8 +52,8 @@ jobs:
             environment="$MANUAL_ENVIRONMENT"
           else
             case "$TARGET_BRANCH" in
-              dev|develop) environment="dev" ;;
-              main|prod)   environment="prod" ;;
+              dev)  environment="dev" ;;
+              prod) environment="prod" ;;
               *)
                 echo "Unsupported target branch: $TARGET_BRANCH" >&2
                 exit 1

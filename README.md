@@ -38,8 +38,8 @@ Target branch determines the validation environment:
 
 | Branch or PR target | Terraform environment | S3 state key |
 | --- | --- | --- |
-| `dev` or `develop` | `dev` | `ec2/dev/terraform.tfstate` |
-| `main` or `prod` | `prod` | `ec2/prod/terraform.tfstate` |
+| `dev` | `dev` | `ec2/dev/terraform.tfstate` |
+| `prod` | `prod` | `ec2/prod/terraform.tfstate` |
 
 Use **Run workflow** in GitHub Actions for every state-changing operation. Select the target environment and one of these operations:
 

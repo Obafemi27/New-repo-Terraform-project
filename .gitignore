@@ -13,7 +13,7 @@ crash.*.log
 # password, private keys, and other secrets. These should not be part of version
 # control as they are data points which are potentially sensitive and subject
 # to change depending on the environment.
-*.tfvars
+#*.tfvars
 *.tfvars.json
 
 # Ignore override files as they are usually used to override resources locally and so
@@ -42,3 +42,24 @@ terraform.rc
 # Optional: ignore plan files saved before destroying Terraform configuration
 # Uncomment the line below if you want to ignore planout files.
 # planout
+# Local S3 backend settings (bucket/profile may be environment-specific)
+backend.hcl
+
+# Commit the non-secret environment configuration templates
+!environments/
+!environments/*.tfvars
+
+# Local copies of per-environment backend settings
+backends/*.hcl
+
+# Per-environment local S3 backend settings
+environments/*/backend.hcl
+
+# Keep committed non-secret environment tfvars visible to Git
+!environments/*/
+!environments/*/terraform.tfvars
+.terraform.lock.hcl
+
+# Keep named environment variable files tracked
+!environments/dev/dev.tfvars
+!environments/prod/prod.tfvars

@@ -88,59 +88,6 @@ jobs:
 
   plan:
     name: Plan (${{ needs.target.outputs.environment }})
-    if: github.event_name != 'workflow_dispatch' || inputs.operation == 'plan'
-    needs:
-      - target
-      - validate
-    runs-on: ubuntu-latest
-    environment:
-      name: ${{ needs.target.outputs.environment }}
-    concurrency:
-      group: terraform-${{ needs.target.outputs.environment }}
-      cancel-in-progress: false
-    defaults:
-      run:
-        working-directory: environments/${{ needs.target.outputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_wrapper: false
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Initialize S3 state backend
-        env:
-          TARGET_ENVIRONMENT: ${{ needs.target.outputs.environment }}
-        run: |
-          case "$TARGET_ENVIRONMENT" in
-            dev)  TF_STATE_BUCKET="amzn-s3-class-bucket2222" ;;
-            prod) TF_STATE_BUCKET="amzn-s3-class-bucket3333" ;;
-            *)
-              echo "Unsupported target environment: $TARGET_ENVIRONMENT" >&2
-              exit 1
-              ;;
-          esac
-
-          terraform init -reconfigure -input=false \
-            -backend-config="bucket=$TF_STATE_BUCKET" \
-            -backend-config="key=ec2/$TARGET_ENVIRONMENT/terraform.tfstate" \
-            -backend-config="region=$AWS_REGION"
-
-      - name: Create execution plan
-        env:
-          TFVARS_FILE: ${{ needs.target.outputs.environment }}.tfvars
-        run: terraform plan -input=false -no-color -var-file="$TFVARS_FILE"
-
-  manual_terraform:
-    name: ${{ inputs.operation }} (${{ needs.target.outputs.environment }})
-    if: github.event_name == 'workflow_dispatch' && (inputs.operation == 'apply' || inputs.operation == 'destroy')
     needs:
       - target
       - validate
@@ -187,7 +134,7 @@ jobs:
 
       - name: Create saved execution plan
         env:
-          OPERATION: ${{ inputs.operation }}
+          OPERATION: ${{ inputs.operation || 'plan' }}
           TFVARS_FILE: ${{ needs.target.outputs.environment }}.tfvars
         run: |
           if [ "$OPERATION" = "destroy" ]; then
@@ -195,6 +142,68 @@ jobs:
           else
             terraform plan -input=false -no-color -var-file="$TFVARS_FILE" -out=tfplan
           fi
+
+      - name: Upload execution plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ needs.target.outputs.environment }}
+          path: environments/${{ needs.target.outputs.environment }}/tfplan
+          if-no-files-found: error
+          retention-days: 7
+
+  manual_terraform:
+    name: ${{ inputs.operation }} (${{ needs.target.outputs.environment }})
+    if: github.event_name == 'workflow_dispatch' && (inputs.operation == 'apply' || inputs.operation == 'destroy')
+    needs:
+      - target
+      - validate
+      - plan
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.target.outputs.environment }}
+    concurrency:
+      group: terraform-${{ needs.target.outputs.environment }}
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: environments/${{ needs.target.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Initialize S3 state backend
+        env:
+          TARGET_ENVIRONMENT: ${{ needs.target.outputs.environment }}
+        run: |
+          case "$TARGET_ENVIRONMENT" in
+            dev)  TF_STATE_BUCKET="amzn-s3-class-bucket2222" ;;
+            prod) TF_STATE_BUCKET="amzn-s3-class-bucket3333" ;;
+            *)
+              echo "Unsupported target environment: $TARGET_ENVIRONMENT" >&2
+              exit 1
+              ;;
+          esac
+
+          terraform init -reconfigure -input=false \
+            -backend-config="bucket=$TF_STATE_BUCKET" \
+            -backend-config="key=ec2/$TARGET_ENVIRONMENT/terraform.tfstate" \
+            -backend-config="region=$AWS_REGION"
+
+      - name: Download saved execution plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan-${{ needs.target.outputs.environment }}
+          path: environments/${{ needs.target.outputs.environment }}
 
       - name: Apply saved plan
         run: terraform apply -input=false -auto-approve tfplan

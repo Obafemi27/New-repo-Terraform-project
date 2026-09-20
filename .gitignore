@@ -59,3 +59,7 @@ environments/*/backend.hcl
 !environments/*/
 !environments/*/terraform.tfvars
 .terraform.lock.hcl
+
+# Keep named environment variable files tracked
+!environments/dev/dev.tfvars
+!environments/prod/prod.tfvars

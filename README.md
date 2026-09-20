@@ -26,9 +26,9 @@ terraform plan
 terraform apply
 ```
 
-The committed `terraform.tfvars` files contain non-sensitive environment defaults. Backend settings are local-only and must not contain AWS access keys; use the standard AWS credential provider chain.
+The committed `dev.tfvars` and `prod.tfvars` files contain non-sensitive environment defaults. Backend settings are local-only and must not contain AWS access keys; use the standard AWS credential provider chain.
 
-Set the required `ami_id` in each environment's `terraform.tfvars` to an AMI available in that environment's AWS Region.
+Set the required `ami_id` in each environment's `dev.tfvars` or `prod.tfvars` file to an AMI available in that environment's AWS Region.
 
 ## CI/CD
 
@@ -49,8 +49,8 @@ Use **Run workflow** in GitHub Actions for every state-changing operation. Selec
 
 For each GitHub Environment (`dev` and `prod`), configure:
 
-- The CI/CD workflow is fixed to AWS Region `us-east-1`; the environment `terraform.tfvars` files must use the same region.
-- Variable `TF_STATE_BUCKET` — the existing S3 state bucket name.
+- The CI/CD workflow is fixed to AWS Region `us-east-1`; the environment `dev.tfvars` and `prod.tfvars` files must use the same region.
+- The workflow uses `amzn-s3-class-bucket2222` for dev and `amzn-s3-class-bucket3333` for prod.
 - Secret `AWS_ACCESS_KEY_ID` — the IAM access key ID for the environment.
 - Secret `AWS_SECRET_ACCESS_KEY` — the matching IAM secret access key.
 

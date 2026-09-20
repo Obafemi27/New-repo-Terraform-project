@@ -1,6 +1,0 @@
-bucket ="amzn-s3-class-bucket3333"
-key    = "ec2/prod/terraform.tfstate"
-region = "us-east-1"
-
-# profile = "default"
-# No DynamoDB configuration: S3 state only.

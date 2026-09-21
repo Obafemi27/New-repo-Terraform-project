@@ -32,7 +32,7 @@ Set the required `ami_id` in each environment's `dev.tfvars` or `prod.tfvars` fi
 
 ## CI/CD
 
-[`.github/workflows/terraform.yml`](.github/workflows/terraform.yml) validates pull requests and pushes without AWS credentials. It never applies infrastructure automatically.
+[`.github/workflows/terraform.yml`](.github/workflows/terraform.yml) validates and then creates a Terraform plan for pull requests and pushes. It never applies infrastructure automatically.
 
 Target branch determines the validation environment:
 
@@ -43,9 +43,9 @@ Target branch determines the validation environment:
 
 Use **Run workflow** in GitHub Actions for every state-changing operation. Select the target environment and one of these operations:
 
-- `plan` — creates and displays a normal execution plan.
-- `apply` — creates a normal saved plan, then applies that exact plan.
-- `destroy` — creates a saved `terraform plan -destroy`, then applies that exact destroy plan.
+- `plan` — creates a saved execution plan and uploads it as a seven-day workflow artifact.
+- `apply` — downloads and applies the exact saved plan artifact from the current workflow run.
+- `destroy` — creates and uploads a saved `terraform plan -destroy`; the manual execution job downloads and applies that exact destroy plan.
 
 For each GitHub Environment (`dev` and `prod`), configure:
 

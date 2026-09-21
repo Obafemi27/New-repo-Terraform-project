@@ -1,7 +1,7 @@
-aws_region                  = "us-east-1"
-environment                 = "dev"
-project_name                = "app"
-instance_type               = "t3.micro"
+aws_region    = "us-east-1"
+environment   = "dev"
+project_name  = "app"
+instance_type = "t3.micro"
 
 # Set these to use existing networking or access configuration.
 subnet_id          = "subnet-0e833b1e89aaf7417"
